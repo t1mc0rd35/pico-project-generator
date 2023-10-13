@@ -48,6 +48,8 @@ VSCODE_LAUNCH_FILENAME = 'launch.json'
 VSCODE_C_PROPERTIES_FILENAME = 'c_cpp_properties.json'
 VSCODE_SETTINGS_FILENAME ='settings.json'
 VSCODE_EXTENSIONS_FILENAME ='extensions.json'
+VSCODE_CMAKE_KITS_FILENAME ='cmake-kits.json'
+VSCODE_TASKS_FILENAME ='tasks.json'
 VSCODE_FOLDER='.vscode'
 
 CONFIG_UNSET="Not set"
@@ -1265,6 +1267,45 @@ def generateProjectFiles(projectPath, projectName, sdkPath, projects, debugger):
                    '  ]\n'
                    '}\n')
 
+            kits = ('[\n'
+                    '  {\n'
+                    '    "name": "Pico ARM GCC",\n'
+                    '    "description": "Pico SDK Toolchain with GCC arm-none-eabi",\n'
+                    '    "toolchainFile": "${env:PICO_SDK_PATH}/cmake/preload/toolchains/pico_arm_gcc.cmake"\n'
+                    '  }\n'
+                    ']\n')
+
+            tasks = ('{\n'
+                    '  "version": "2.0.0",\n'
+                    '  "tasks": [\n'
+                    '    {\n'
+                    '      "label": "Flash",\n'
+                    '      "type": "shell",\n'
+                    '      "command": "openocd",\n'
+                    '      "args": [\n'
+                    '        "-f",\n'
+                    '        "interface/cmsis-dap.cfg",\n'
+                    '        "-f",\n'
+                    '        "target/rp2040.cfg",\n'
+                    '        "-c",\n'
+                    '        "adapter speed 1000; program {${command:cmake.launchTargetPath}} verify reset exit"\n'
+                    '      ],\n'
+                    '      "problemMatcher": []\n'
+                    '    },\n'
+                    '    {\n'
+                    '      "label": "Build",\n'
+                    '      "type": "cmake",\n'
+                    '      "command": "build",\n'
+                    '      "problemMatcher": "$gcc",\n'
+                    '      "group": {\n'
+                    '        "kind": "build",\n'
+                    '        "isDefault": true\n'
+                    '      }\n'
+                    '    }\n'
+                    '  ]\n'
+                    '}\n')
+            
+
             # Create a build folder, and run our cmake project build from it
             if not os.path.exists(VSCODE_FOLDER):
                 os.mkdir(VSCODE_FOLDER)
@@ -1286,6 +1327,14 @@ def generateProjectFiles(projectPath, projectName, sdkPath, projects, debugger):
 
             file = open(VSCODE_EXTENSIONS_FILENAME, 'w')
             file.write(extensions)
+            file.close()
+
+            file = open(VSCODE_CMAKE_KITS_FILENAME, "w")
+            file.write(kits)
+            file.close()
+
+            file = open(VSCODE_TASKS_FILENAME, "w")
+            file.write(tasks)
             file.close()
 
         else :
